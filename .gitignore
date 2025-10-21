@@ -1,0 +1,10 @@
+# Ignorar todo excepto las carpetas del proyecto
+/*
+
+# Incluir las carpetas del proyecto
+!/sistema estudiantil/
+!/estructuras dinamicas/
+
+# No ignorar el .gitignore
+!.gitignore
+
