@@ -15,6 +15,106 @@ struct NodoEstudiante {
     NodoEstudiante* siguiente;
 };
 
+struct NodoCola {
+    string nombre;
+    string codigo;
+    NodoCola* siguiente;
+};
+
+struct NodoPila {
+    string nombre;
+    string codigo;
+    float promedio;
+    NodoPila* siguiente;
+};
+
+class Cola {
+private:
+    NodoCola* frente;
+    NodoCola* fondo;
+
+public:
+    Cola() {
+        frente = nullptr;
+        fondo = nullptr;
+    }
+
+    bool vacia() {
+        return frente == nullptr;
+    }
+
+    void encolar(string nombre, string codigo) {
+        NodoCola* nuevo = new NodoCola;
+        nuevo->nombre = nombre;
+        nuevo->codigo = codigo;
+        nuevo->siguiente = nullptr;
+
+        if (vacia()) {
+            frente = nuevo;
+        } else {
+            fondo->siguiente = nuevo;
+        }
+        fondo = nuevo;
+    }
+
+    void desencolar(string& nombre, string& codigo) {
+        if (!vacia()) {
+            NodoCola* temp = frente;
+            nombre = temp->nombre;
+            codigo = temp->codigo;
+            frente = frente->siguiente;
+            if (frente == nullptr) {
+                fondo = nullptr;
+            }
+            delete temp;
+        }
+    }
+};
+
+class Pila {
+private:
+    NodoPila* cima;
+
+public:
+    Pila() {
+        cima = nullptr;
+    }
+
+    bool vacia() {
+        return cima == nullptr;
+    }
+
+    void push(string nombre, string codigo, float promedio) {
+        NodoPila* nuevo = new NodoPila;
+        nuevo->nombre = nombre;
+        nuevo->codigo = codigo;
+        nuevo->promedio = promedio;
+        nuevo->siguiente = cima;
+        cima = nuevo;
+    }
+
+    void pop(string& nombre, string& codigo, float& promedio) {
+        if (!vacia()) {
+            NodoPila* temp = cima;
+            nombre = temp->nombre;
+            codigo = temp->codigo;
+            promedio = temp->promedio;
+            cima = cima->siguiente;
+            delete temp;
+        }
+    }
+
+    int contar() {
+        int count = 0;
+        NodoPila* temp = cima;
+        while (temp != nullptr) {
+            count++;
+            temp = temp->siguiente;
+        }
+        return count;
+    }
+};
+
 NodoEstudiante* listaEstudiantes = nullptr;
 string* nombresMaterias = nullptr;
 int M = 0;
@@ -52,6 +152,16 @@ void insertarEstudiante(string nombre, string codigo) {
         }
         temp->siguiente = nuevo;
     }
+}
+
+NodoEstudiante* obtenerUltimoEstudiante() {
+    if (listaEstudiantes == nullptr) return nullptr;
+    
+    NodoEstudiante* temp = listaEstudiantes;
+    while (temp->siguiente != nullptr) {
+        temp = temp->siguiente;
+    }
+    return temp;
 }
 
 float promedioEstudiante(NodoEstudiante* estudiante) {
@@ -114,6 +224,40 @@ void mostrarEstadisticas() {
     }
 }
 
+void procesarReprobados() {
+    Pila pilaReprobados;
+    NodoEstudiante* temp = listaEstudiantes;
+    
+    while (temp != nullptr) {
+        float promedio = promedioEstudiante(temp);
+        if (promedio < 3.0) {
+            pilaReprobados.push(temp->nombre, temp->codigo, promedio);
+        }
+        temp = temp->siguiente;
+    }
+    
+    int totalReprobados = pilaReprobados.contar();
+    
+    if (totalReprobados == 0) {
+        cout << "\n--- Habilitaciones ---\n";
+        cout << "No hay estudiantes reprobados.\n";
+        return;
+    }
+    
+    cout << "\n--- Habilitaciones (Estudiantes Reprobados) ---\n";
+    cout << "Total de estudiantes reprobados: " << totalReprobados << "\n";
+    cout << "Procesando en orden de habilitacion:\n\n";
+    
+    int posicion = 1;
+    while (!pilaReprobados.vacia()) {
+        string nombre, codigo;
+        float promedio;
+        pilaReprobados.pop(nombre, codigo, promedio);
+        cout << posicion << ". " << nombre << " (" << codigo << ") - Promedio: " << promedio << "\n";
+        posicion++;
+    }
+}
+
 void liberarMemoria() {
     NodoEstudiante* tempEst = listaEstudiantes;
     
@@ -135,8 +279,9 @@ void liberarMemoria() {
 
 int main() {
     int N;
+    Cola colaInscripciones;
     
-    cout << "=== Sistema Academico Basico ===\n";
+    cout << "=== Sistema Academico con Cola y Pila ===\n";
     cout << "Numero de estudiantes: ";
     cin >> N;
     cout << "Numero de materias: ";
@@ -152,33 +297,47 @@ int main() {
         getline(cin, nombresMaterias[j]);
     }
 
-    cout << "\n--- Ingreso de estudiantes ---\n";
+    cout << "\n--- Cola de Inscripciones ---\n";
+    cout << "Los estudiantes llegan y se encolan...\n\n";
+    
     for (int i = 0; i < N; i++) {
         string nombre, codigo;
         
-        cout << "Nombre estudiante " << i + 1 << ": ";
+        cout << "Estudiante " << i + 1 << " llega:\n";
+        cout << "  Nombre: ";
         getline(cin, nombre);
-        cout << "Codigo: ";
+        cout << "  Codigo: ";
         getline(cin, codigo);
-
-        insertarEstudiante(nombre, codigo);
         
-        NodoEstudiante* temp = listaEstudiantes;
-        while (temp->siguiente != nullptr) {
-            temp = temp->siguiente;
-        }
+        colaInscripciones.encolar(nombre, codigo);
+        cout << "  [Encolado exitosamente]\n\n";
+    }
+
+    cout << "\n--- Procesando Inscripciones (Desencolando) ---\n";
+    
+    while (!colaInscripciones.vacia()) {
+        string nombre, codigo;
+        colaInscripciones.desencolar(nombre, codigo);
+        
+        cout << "\nAtendiendo a: " << nombre << " (" << codigo << ")\n";
+        
+        insertarEstudiante(nombre, codigo);
+        NodoEstudiante* estudianteActual = obtenerUltimoEstudiante();
 
         for (int j = 0; j < M; j++) {
             float nota;
-            cout << "Nota en " << nombresMaterias[j] << ": ";
+            cout << "  Nota en " << nombresMaterias[j] << ": ";
             cin >> nota;
-            insertarMateria(temp, nombresMaterias[j], nota);
+            insertarMateria(estudianteActual, nombresMaterias[j], nota);
         }
         cin.ignore();
+        
+        cout << "  [Inscripcion completada]\n";
     }
 
     mostrarEstudiantes();
     mostrarEstadisticas();
+    procesarReprobados();
     liberarMemoria();
 
     return 0;
