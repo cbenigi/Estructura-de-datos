@@ -326,8 +326,13 @@ int main() {
 
         for (int j = 0; j < M; j++) {
             float nota;
-            cout << "  Nota en " << nombresMaterias[j] << ": ";
-            cin >> nota;
+            do {
+                cout << "  Nota en " << nombresMaterias[j] << " (0-5): ";
+                cin >> nota;
+                if (nota < 0 || nota > 5) {
+                    cout << "  Error: Ingrese una nota entre 0 y 5.\n";
+                }
+            } while (nota < 0 || nota > 5);
             insertarMateria(estudianteActual, nombresMaterias[j], nota);
         }
         cin.ignore();
