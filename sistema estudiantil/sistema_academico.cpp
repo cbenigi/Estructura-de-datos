@@ -398,7 +398,7 @@ void procesarNota(Estudiante*& frente, Estudiante*& final, Estudiante* lista) {
 }
 
 void mostrarNotasPendientes(Estudiante* frente) {
-    cout << "\n====== NOTAS PENDIENTES EN COLA (FIFO) ======\n";
+    cout << "\n====== NOTAS PENDIENTES EN COLA ======\n";
     if (frente == nullptr) {
         cout << "No hay notas pendientes en espera.\n";
         return;
@@ -436,7 +436,7 @@ void eliminarUltimoHistorial(Estudiante*& cima) {
     }
 
     Estudiante* temp = cima;
-    cout << "\n====== ELIMINANDO DEL HISTORIAL (LIFO) ======\n";
+    cout << "\n====== ELIMINANDO DEL HISTORIAL ======\n";
     cout << "  Registro Eliminado: Nombre: " << temp->nombre
           << " | Identificación: " << temp->codigo
           << " | Acción: " << temp->concepto << endl;
@@ -481,11 +481,11 @@ int main() {
         cout << "  [ GESTIÓN DE MATERIAS ]\n";
         cout << "  4. Agregar materia a estudiante\n";
         cout << "  5. Eliminar materia de estudiante\n\n";
-        cout << "  [ COLA (FIFO) - ASIGNACIÓN DE NOTAS PENDIENTES ]\n";
+        cout << "  [ COLA - ASIGNACIÓN DE NOTAS PENDIENTES ]\n";
         cout << "  6. Registrar Nota Pendiente para un estudiante (especificar materia)\n";
         cout << "  7. Procesar la siguiente nota pendiente (Asignar)\n";
         cout << "  8. Ver notas pendientes en espera\n\n";
-        cout << "  [ PILA (LIFO) - HISTORIAL DE ACCIONES ]\n";
+        cout << "  [ PILA - HISTORIAL DE ACCIONES ]\n";
         cout << "  9. Registrar acción en historial\n";
         cout << "  10. Eliminar último registro del historial\n";
         cout << "  11. Ver historial de acciones\n\n";
@@ -547,7 +547,7 @@ int main() {
 
 
             case 6: {
-                cout << "\n-- REGISTRAR NOTA PENDIENTE (COLA) --\n";
+                cout << "\n-- REGISTRAR NOTA PENDIENTE --\n";
                 cout << "Ingrese la identificación del estudiante:\n";
                 codigo = pedirIdentificacionValida();
                 Estudiante* estudiante = buscarEstudiante(lista, codigo);
