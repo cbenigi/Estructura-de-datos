@@ -125,6 +125,49 @@ bool materiaExiste(const vector<Materia>& materias, const string& nombreMateria)
     return false;
 }
 
+Estudiante* insertarEnBST(Estudiante* raiz, Estudiante* nuevo) {
+    if (raiz == nullptr) return nuevo;
+    if (stoi(nuevo->codigo) < stoi(raiz->codigo)) {
+        raiz->izquierdo = insertarEnBST(raiz->izquierdo, nuevo);
+    } else {
+        raiz->derecho = insertarEnBST(raiz->derecho, nuevo);
+    }
+    return raiz;
+}
+
+Estudiante* buscarEnBST(Estudiante* raiz, const string& codigo) {
+    if (raiz == nullptr || raiz->codigo == codigo) return raiz;
+    if (stoi(codigo) < stoi(raiz->codigo)) {
+        return buscarEnBST(raiz->izquierdo, codigo);
+    } else {
+        return buscarEnBST(raiz->derecho, codigo);
+    }
+}
+
+void mostrarInorder(Estudiante* raiz) {
+    if (raiz != nullptr) {
+        mostrarInorder(raiz->izquierdo);
+        cout << "Nombre: " << raiz->nombre
+             << " | Código: " << raiz->codigo
+             << " | Materias: ";
+        if (raiz->materias.empty()) {
+            cout << "N/A";
+        } else {
+            for (size_t i = 0; i < raiz->materias.size(); ++i) {
+                cout << raiz->materias[i].nombreMateria << "(";
+                for (size_t j = 0; j < raiz->materias[i].notas.size(); ++j) {
+                    cout << raiz->materias[i].notas[j];
+                    if (j < raiz->materias[i].notas.size() - 1) cout << ",";
+                }
+                cout << ")";
+                if (i < raiz->materias.size() - 1) cout << " ";
+            }
+        }
+        cout << endl;
+        mostrarInorder(raiz->derecho);
+    }
+}
+
 bool codigoExiste(Estudiante* cabeza, const string& codigo) {
     return buscarEnBST(cabeza, codigo) != nullptr;
 }
@@ -196,6 +239,22 @@ float calcularPromedio(const string& notasStr) {
     return suma / contador;
 }
 
+float calcularPromedioMateria(const vector<float>& notas) {
+    if (notas.empty()) return 0.0f;
+    float suma = 0.0f;
+    for (float n : notas) suma += n;
+    return suma / notas.size();
+}
+
+float calcularPromedioGeneral(const vector<Materia>& materias) {
+    if (materias.empty()) return 0.0f;
+    float sumaPromedios = 0.0f;
+    for (const auto& mat : materias) {
+        sumaPromedios += calcularPromedioMateria(mat.notas);
+    }
+    return sumaPromedios / materias.size();
+}
+
 void buscarEstudianteYMostrarPromedio(Estudiante* cabeza) {
     string codigoBuscado;
     cout << "\n====== BÚSQUEDA DE ESTUDIANTE Y PROMEDIOS ======\n";
@@ -238,49 +297,6 @@ void buscarEstudianteYMostrarPromedio(Estudiante* cabeza) {
         }
     } else {
         cout << "  [ERROR] No se encontró ningún estudiante con el código " << codigoBuscado << ".\n";
-    }
-}
-
-Estudiante* insertarEnBST(Estudiante* raiz, Estudiante* nuevo) {
-    if (raiz == nullptr) return nuevo;
-    if (stoi(nuevo->codigo) < stoi(raiz->codigo)) {
-        raiz->izquierdo = insertarEnBST(raiz->izquierdo, nuevo);
-    } else {
-        raiz->derecho = insertarEnBST(raiz->derecho, nuevo);
-    }
-    return raiz;
-}
-
-Estudiante* buscarEnBST(Estudiante* raiz, const string& codigo) {
-    if (raiz == nullptr || raiz->codigo == codigo) return raiz;
-    if (stoi(codigo) < stoi(raiz->codigo)) {
-        return buscarEnBST(raiz->izquierdo, codigo);
-    } else {
-        return buscarEnBST(raiz->derecho, codigo);
-    }
-}
-
-void mostrarInorder(Estudiante* raiz) {
-    if (raiz != nullptr) {
-        mostrarInorder(raiz->izquierdo);
-        cout << "Nombre: " << raiz->nombre
-             << " | Código: " << raiz->codigo
-             << " | Materias: ";
-        if (raiz->materias.empty()) {
-            cout << "N/A";
-        } else {
-            for (size_t i = 0; i < raiz->materias.size(); ++i) {
-                cout << raiz->materias[i].nombreMateria << "(";
-                for (size_t j = 0; j < raiz->materias[i].notas.size(); ++j) {
-                    cout << raiz->materias[i].notas[j];
-                    if (j < raiz->materias[i].notas.size() - 1) cout << ",";
-                }
-                cout << ")";
-                if (i < raiz->materias.size() - 1) cout << " ";
-            }
-        }
-        cout << endl;
-        mostrarInorder(raiz->derecho);
     }
 }
 
@@ -498,22 +514,25 @@ int main() {
         limpiarConsola(); 
 
         switch (opcion) {
-            case 1: 
+            case 1: {
                 cout << "\n-- REGISTRAR ESTUDIANTE --\n";
                 nombre = pedirNombreValido();
                 codigo = pedirCodigoValido();
                 registrarEstudiante(lista, nombre, codigo);
                 break;
+            }
 
-            case 2:
+            case 2: {
                 mostrarRegistro(lista);
                 break;
-                
-            case 9:
+            }
+
+            case 9: {
                 buscarEstudianteYMostrarPromedio(lista);
                 break;
+            }
 
-            case 10: // Agregar materia a estudiante
+            case 10: {
                 cout << "\n-- AGREGAR MATERIA A ESTUDIANTE --\n";
                 cout << "Ingrese el código del estudiante:\n";
                 codigo = pedirCodigoValido();
@@ -526,8 +545,9 @@ int main() {
                     agregarMateriaAEstudiante(estAgregar, nombre);
                 }
                 break;
+            }
 
-            case 11: // Eliminar materia de estudiante
+            case 11: {
                 cout << "\n-- ELIMINAR MATERIA DE ESTUDIANTE --\n";
                 cout << "Ingrese el código del estudiante:\n";
                 codigo = pedirCodigoValido();
@@ -540,8 +560,9 @@ int main() {
                     eliminarMateriaDeEstudiante(estEliminar, nombre);
                 }
                 break;
+            }
 
-            case 12: // Registrar nota en materia específica
+            case 12: {
                 cout << "\n-- REGISTRAR NOTA EN MATERIA ESPECÍFICA --\n";
                 cout << "Ingrese el código del estudiante:\n";
                 codigo = pedirCodigoValido();
@@ -555,8 +576,9 @@ int main() {
                     registrarNotaEnMateria(estNota, nombre, nota);
                 }
                 break;
+            }
 
-            case 3: // Registrar Nota Pendiente (Cola - FIFO)
+            case 3: {
                 cout << "\n-- REGISTRAR NOTA PENDIENTE (COLA) --\n";
                 cout << "Ingrese el código del estudiante:\n";
                 codigo = pedirCodigoValido();
@@ -565,35 +587,42 @@ int main() {
                 nota = pedirNotaValida();
                 registrarNotaPendiente(frente, final, lista, codigo, nombre, nota);
                 break;
+            }
 
-            case 4: // Procesar Nota Pendiente (Cola - FIFO)
+            case 4: {
                 procesarNota(frente, final, lista);
                 break;
+            }
 
-            case 5: // Mostrar Notas Pendientes (Cola - FIFO)
+            case 5: {
                 mostrarNotasPendientes(frente);
                 break;
+            }
 
-            case 6: // Registrar en historial (Pila)
+            case 6: {
                 cout << "\n-- REGISTRAR ACCIÓN EN HISTORIAL --\n";
                 nombre = pedirNombreValido();
                 codigo = pedirCodigoValido();
                 cout << " Descripción de la Acción: ";
-                getline(cin, concepto); 
+                getline(cin, concepto);
                 registrarHistorial(cima, nombre, codigo, concepto);
                 break;
+            }
 
-            case 7: // Eliminar último historial (Pila)
+            case 7: {
                 eliminarUltimoHistorial(cima);
                 break;
+            }
 
-            case 8: // Mostrar historial (Pila)
+            case 8: {
                 mostrarHistorial(cima);
                 break;
+            }
 
-            case 0:
+            case 0: {
                 cout << "Saliendo del sistema académico...\n";
                 break;
+            }
         }
         
         if (opcion != 0) {
