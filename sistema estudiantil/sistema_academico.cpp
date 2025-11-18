@@ -481,7 +481,6 @@ int main() {
         cout << "  [ GESTIÓN DE MATERIAS ]\n";
         cout << "  10. Agregar materia a estudiante\n";
         cout << "  11. Eliminar materia de estudiante\n";
-        cout << "  12. Registrar nota en materia específica\n";
         cout << "  [ COLA (FIFO) - ASIGNACIÓN DE NOTAS PENDIENTES ]\n";
         cout << "  3. Registrar Nota Pendiente para un estudiante (especificar materia)\n";
         cout << "  4. Procesar la siguiente nota pendiente (Asignar)\n";
@@ -493,7 +492,7 @@ int main() {
         cout << "\n  0. Salir del sistema\n";
         cout << "Seleccione una opción: ";
 
-        opcion = pedirOpcionValida(0, 12);
+        opcion = pedirOpcionValida(0, 11);
 
         limpiarConsola(); 
 
@@ -546,30 +545,34 @@ int main() {
                 break;
             }
 
-            case 12: {
-                cout << "\n-- REGISTRAR NOTA EN MATERIA ESPECÍFICA --\n";
-                cout << "Ingrese el código del estudiante:\n";
-                codigo = pedirCodigoValido();
-                Estudiante* estNota = buscarEstudiante(lista, codigo);
-                if (estNota == nullptr) {
-                    cout << "  [ERROR] Estudiante no encontrado.\n";
-                } else {
-                    cout << "Ingrese el nombre de la materia:\n";
-                    nombre = pedirNombreMateriaValido();
-                    nota = pedirNotaValida();
-                    registrarNotaEnMateria(estNota, nombre, nota);
-                }
-                break;
-            }
 
             case 3: {
                 cout << "\n-- REGISTRAR NOTA PENDIENTE (COLA) --\n";
                 cout << "Ingrese el código del estudiante:\n";
                 codigo = pedirCodigoValido();
-                cout << "Ingrese el nombre de la materia:\n";
-                nombre = pedirNombreMateriaValido();
-                nota = pedirNotaValida();
-                registrarNotaPendiente(frente, final, lista, codigo, nombre, nota);
+                Estudiante* estudiante = buscarEstudiante(lista, codigo);
+                if (estudiante == nullptr) {
+                    cout << "  [ERROR] Estudiante no encontrado.\n";
+                } else if (estudiante->materias.empty()) {
+                    cout << "  [ERROR] El estudiante no tiene materias registradas.\n";
+                } else {
+                    cout << "Materias disponibles para " << estudiante->nombre << ":\n";
+                    for (size_t i = 0; i < estudiante->materias.size(); ++i) {
+                        cout << "  " << (i + 1) << ". " << estudiante->materias[i].nombreMateria << endl;
+                    }
+                    cout << "Seleccione el número de la materia: ";
+                    int numMateria = pedirOpcionValida(1, estudiante->materias.size());
+                    string nombreMateria = estudiante->materias[numMateria - 1].nombreMateria;
+                    do {
+                        nota = pedirNotaValida();
+                        registrarNotaPendiente(frente, final, lista, codigo, nombreMateria, nota);
+                        cout << "¿Quieres agregar otra nota a la misma materia? (S/N): ";
+                        char respuesta;
+                        cin >> respuesta;
+                        cin.ignore(1000, '\n');
+                        if (respuesta != 'S' && respuesta != 's') break;
+                    } while (true);
+                }
                 break;
             }
 
