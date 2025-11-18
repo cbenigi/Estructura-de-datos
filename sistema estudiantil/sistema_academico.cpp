@@ -74,18 +74,18 @@ float pedirNotaValida() {
     return nota;
 }
 
-string pedirCodigoValido() {
-    string codigo;
+string pedirIdentificacionValida() {
+    string identificacion;
     do {
-        cout << " Código (solo números): ";
-        getline(cin, codigo);
-        if (!esNumero(codigo)) {
+        cout << " Identificación (solo números): ";
+        getline(cin, identificacion);
+        if (!esNumero(identificacion)) {
             cout << "  [ERROR] Solo se permiten números. Intente nuevamente.\n";
         } else {
             break;
         }
     } while (true);
-    return codigo;
+    return identificacion;
 }
 
 string pedirNombreValido() {
@@ -148,7 +148,7 @@ void mostrarInorder(Estudiante* raiz) {
     if (raiz != nullptr) {
         mostrarInorder(raiz->izquierdo);
         cout << "Nombre: " << raiz->nombre
-             << " | Código: " << raiz->codigo
+             << " | Identificación: " << raiz->codigo
              << " | Materias: ";
         if (raiz->materias.empty()) {
             cout << "N/A";
@@ -263,7 +263,7 @@ void buscarEstudianteYMostrarPromedio(Estudiante* cabeza) {
         return;
     }
 
-    cout << "Ingrese el Código del estudiante a buscar: ";
+    cout << "Ingrese la Identificación del estudiante a buscar: ";
     getline(cin, codigoBuscado);
     if (!esNumero(codigoBuscado)) {
         cout << "  [ERROR] Código inválido. Solo se permiten números.\n";
@@ -274,7 +274,7 @@ void buscarEstudianteYMostrarPromedio(Estudiante* cabeza) {
     if (encontrado != nullptr) {
         cout << "\n  Estudiante Encontrado!\n";
         cout << "  Nombre: " << encontrado->nombre << endl;
-        cout << "  Código: " << encontrado->codigo << endl;
+        cout << "  Identificación: " << encontrado->codigo << endl;
         if (encontrado->materias.empty()) {
             cout << "  Materias: N/A" << endl;
             cout << "  Promedio General: N/A" << endl;
@@ -378,7 +378,7 @@ void procesarNota(Estudiante*& frente, Estudiante*& final, Estudiante* lista) {
 
     cout << "\n====== PROCESANDO NOTA (FIFO) ======\n";
     cout << "  Estudiante: " << temp->nombre
-         << " | Código: " << temp->codigo
+         << " | Identificación: " << temp->codigo
          << " | Materia: " << materia
          << " | Nota a Añadir: " << nuevaNotaStr << endl;
 
@@ -406,7 +406,7 @@ void mostrarNotasPendientes(Estudiante* frente) {
     Estudiante* actual = frente;
     int i = 1;
     while (actual != nullptr) {
-        cout << "  " << i++ << ". Código: " << actual->codigo
+        cout << "  " << i++ << ". Identificación: " << actual->codigo
              << " | Nombre: " << actual->nombre
              << " | Materia: " << actual->materiaPendiente
              << " | Nota a Asignar: " << actual->concepto << endl;
@@ -438,8 +438,8 @@ void eliminarUltimoHistorial(Estudiante*& cima) {
     Estudiante* temp = cima;
     cout << "\n====== ELIMINANDO DEL HISTORIAL (LIFO) ======\n";
     cout << "  Registro Eliminado: Nombre: " << temp->nombre
-         << " | Código: " << temp->codigo
-         << " | Acción: " << temp->concepto << endl;
+          << " | Identificación: " << temp->codigo
+          << " | Acción: " << temp->concepto << endl;
     cima = cima->siguiente;
     delete temp;
     cout << "  [ÉXITO] Registro eliminado con éxito.\n";
@@ -454,8 +454,8 @@ void mostrarHistorial(Estudiante* cima) {
     Estudiante* actual = cima;
     while (actual != nullptr) {
         cout << "  Acción: " << actual->concepto
-             << " | Nombre: " << actual->nombre
-             << " | Código: " << actual->codigo << endl;
+              << " | Nombre: " << actual->nombre
+              << " | Identificación: " << actual->codigo << endl;
         actual = actual->siguiente;
     }
 }
@@ -477,18 +477,18 @@ int main() {
         cout << "  [ BST - REGISTRO DE ESTUDIANTES ]\n";
         cout << "  1. Registrar nuevo estudiante (Inicia sin materias)\n";
         cout << "  2. Mostrar todos los estudiantes\n";
-        cout << "  9. Buscar estudiante y ver materias/notas/promedios\n";
+        cout << "  3. Buscar estudiante y ver materias/notas/promedios\n";
         cout << "  [ GESTIÓN DE MATERIAS ]\n";
-        cout << "  10. Agregar materia a estudiante\n";
-        cout << "  11. Eliminar materia de estudiante\n";
+        cout << "  4. Agregar materia a estudiante\n";
+        cout << "  5. Eliminar materia de estudiante\n";
         cout << "  [ COLA (FIFO) - ASIGNACIÓN DE NOTAS PENDIENTES ]\n";
-        cout << "  3. Registrar Nota Pendiente para un estudiante (especificar materia)\n";
-        cout << "  4. Procesar la siguiente nota pendiente (Asignar)\n";
-        cout << "  5. Ver notas pendientes en espera\n";
+        cout << "  6. Registrar Nota Pendiente para un estudiante (especificar materia)\n";
+        cout << "  7. Procesar la siguiente nota pendiente (Asignar)\n";
+        cout << "  8. Ver notas pendientes en espera\n";
         cout << "  [ PILA (LIFO) - HISTORIAL DE ACCIONES ]\n";
-        cout << "  6. Registrar acción en historial\n";
-        cout << "  7. Eliminar último registro del historial\n";
-        cout << "  8. Ver historial de acciones\n";
+        cout << "  9. Registrar acción en historial\n";
+        cout << "  10. Eliminar último registro del historial\n";
+        cout << "  11. Ver historial de acciones\n";
         cout << "\n  0. Salir del sistema\n";
         cout << "Seleccione una opción: ";
 
@@ -500,7 +500,7 @@ int main() {
             case 1: {
                 cout << "\n-- REGISTRAR ESTUDIANTE --\n";
                 nombre = pedirNombreValido();
-                codigo = pedirCodigoValido();
+                codigo = pedirIdentificacionValida();
                 registrarEstudiante(lista, nombre, codigo);
                 break;
             }
@@ -510,15 +510,15 @@ int main() {
                 break;
             }
 
-            case 9: {
+            case 3: {
                 buscarEstudianteYMostrarPromedio(lista);
                 break;
             }
 
-            case 10: {
+            case 4: {
                 cout << "\n-- AGREGAR MATERIA A ESTUDIANTE --\n";
-                cout << "Ingrese el código del estudiante:\n";
-                codigo = pedirCodigoValido();
+                cout << "Ingrese la identificación del estudiante:\n";
+                codigo = pedirIdentificacionValida();
                 Estudiante* estAgregar = buscarEstudiante(lista, codigo);
                 if (estAgregar == nullptr) {
                     cout << "  [ERROR] Estudiante no encontrado.\n";
@@ -530,10 +530,10 @@ int main() {
                 break;
             }
 
-            case 11: {
+            case 5: {
                 cout << "\n-- ELIMINAR MATERIA DE ESTUDIANTE --\n";
-                cout << "Ingrese el código del estudiante:\n";
-                codigo = pedirCodigoValido();
+                cout << "Ingrese la identificación del estudiante:\n";
+                codigo = pedirIdentificacionValida();
                 Estudiante* estEliminar = buscarEstudiante(lista, codigo);
                 if (estEliminar == nullptr) {
                     cout << "  [ERROR] Estudiante no encontrado.\n";
@@ -546,10 +546,10 @@ int main() {
             }
 
 
-            case 3: {
+            case 6: {
                 cout << "\n-- REGISTRAR NOTA PENDIENTE (COLA) --\n";
-                cout << "Ingrese el código del estudiante:\n";
-                codigo = pedirCodigoValido();
+                cout << "Ingrese la identificación del estudiante:\n";
+                codigo = pedirIdentificacionValida();
                 Estudiante* estudiante = buscarEstudiante(lista, codigo);
                 if (estudiante == nullptr) {
                     cout << "  [ERROR] Estudiante no encontrado.\n";
@@ -576,32 +576,32 @@ int main() {
                 break;
             }
 
-            case 4: {
+            case 7: {
                 procesarNota(frente, final, lista);
                 break;
             }
 
-            case 5: {
+            case 8: {
                 mostrarNotasPendientes(frente);
                 break;
             }
 
-            case 6: {
+            case 9: {
                 cout << "\n-- REGISTRAR ACCIÓN EN HISTORIAL --\n";
                 nombre = pedirNombreValido();
-                codigo = pedirCodigoValido();
+                codigo = pedirIdentificacionValida();
                 cout << " Descripción de la Acción: ";
                 getline(cin, concepto);
                 registrarHistorial(cima, nombre, codigo, concepto);
                 break;
             }
 
-            case 7: {
+            case 10: {
                 eliminarUltimoHistorial(cima);
                 break;
             }
 
-            case 8: {
+            case 11: {
                 mostrarHistorial(cima);
                 break;
             }
