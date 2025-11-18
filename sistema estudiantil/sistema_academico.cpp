@@ -2,13 +2,13 @@
 #include <cctype>
 #include <string>
 #include <sstream>
+#include <vector>
 #include <cmath>
 #include <cstdlib>
-#include <iomanip> // Necesario para setprecision
+#include <iomanip>
 
 using namespace std;
 
-// Función para limpiar la consola
 void limpiarConsola() {
     #ifdef _WIN32
         system("cls");
@@ -17,33 +17,27 @@ void limpiarConsola() {
     #endif
 }
 
-/**
- * @brief Convierte un float a string controlando la precisión decimal a 1.
- * @param num El número flotante a convertir.
- * @return El número como string con un decimal.
- */
 string floatAString(float num) {
     stringstream ss;
     ss << fixed << setprecision(1) << num;
     return ss.str();
 }
 
-// estructura base para lista enlazada, pila y cola
+struct Materia {
+    string nombreMateria;
+    vector<float> notas;
+};
+
 struct Estudiante {
     string nombre;
     string codigo;
-    // En la Lista principal, 'concepto' guarda la lista de NOTAS (ej: "4.5,3.0").
-    // En la Cola, 'concepto' guarda la NOTA PENDIENTE (una sola).
-    // En la Pila, 'concepto' guarda la ACCIÓN del historial.
-    string concepto; 
+    vector<Materia> materias;
+    string concepto;
+    string materiaPendiente;
     Estudiante* siguiente;
+    Estudiante* izquierdo;
+    Estudiante* derecho;
 };
-
-// ---------- VALIDACIONES Y UTILIDADES (Cuerpos omitidos por brevedad, pero incluidos en el código) ----------
-
-// Las funciones de validación 'esNumero', 'esTexto', 'pedirNotaValida', 'pedirCodigoValido', 'pedirNombreValido', 
-// 'codigoExiste', 'pedirConfirmacion' y 'pedirOpcionValida' se mantienen sin cambios funcionales mayores, 
-// solo se ajustan los mensajes para quitar emojis.
 
 bool esNumero(const string& str) {
     for (char c : str) {
@@ -108,15 +102,31 @@ string pedirNombreValido() {
     return nombre;
 }
 
-bool codigoExiste(Estudiante* cabeza, const string& codigo) {
-    Estudiante* actual = cabeza;
-    while (actual != nullptr) {
-        if (actual->codigo == codigo) {
+string pedirNombreMateriaValido() {
+    string nombreMateria;
+    do {
+        cout << " Nombre de la Materia (solo letras y espacios): ";
+        getline(cin, nombreMateria);
+        if (!esTexto(nombreMateria)) {
+            cout << "  [ERROR] Solo se permiten letras y espacios. Intente nuevamente.\n";
+        } else {
+            break;
+        }
+    } while (true);
+    return nombreMateria;
+}
+
+bool materiaExiste(const vector<Materia>& materias, const string& nombreMateria) {
+    for (const auto& mat : materias) {
+        if (mat.nombreMateria == nombreMateria) {
             return true;
         }
-        actual = actual->siguiente;
     }
     return false;
+}
+
+bool codigoExiste(Estudiante* cabeza, const string& codigo) {
+    return buscarEnBST(cabeza, codigo) != nullptr;
 }
 
 bool pedirConfirmacion(const string& accion) {
@@ -138,8 +148,6 @@ int pedirOpcionValida(int minOp, int maxOp) {
     return opcion;
 }
 
-// ---------- FUNCIONES DE LISTA ENLAZADA (Registro Inicial) ----------
-
 void registrarEstudiante(Estudiante*& cabeza, string nombre, string codigo) {
     if (codigoExiste(cabeza, codigo)) {
         cout << "  [ERROR] Ya existe un estudiante con el código " << codigo << ". No se registró.\n";
@@ -148,43 +156,25 @@ void registrarEstudiante(Estudiante*& cabeza, string nombre, string codigo) {
     Estudiante* nuevo = new Estudiante();
     nuevo->nombre = nombre;
     nuevo->codigo = codigo;
-    nuevo->concepto = ""; // Inicializar sin notas.
-    nuevo->siguiente = cabeza;
-    cabeza = nuevo;
-    cout << "  [ÉXITO] Estudiante " << nombre << " registrado con éxito (Sin notas iniciales).\n";
+    nuevo->izquierdo = nullptr;
+    nuevo->derecho = nullptr;
+    cabeza = insertarEnBST(cabeza, nuevo);
+    cout << "  [ÉXITO] Estudiante " << nombre << " registrado con éxito (Sin materias iniciales).\n";
 }
 
 Estudiante* buscarEstudiante(Estudiante* cabeza, const string& codigo) {
-    Estudiante* actual = cabeza;
-    while (actual != nullptr) {
-        if (actual->codigo == codigo) {
-            return actual;
-        }
-        actual = actual->siguiente;
-    }
-    return nullptr;
+    return buscarEnBST(cabeza, codigo);
 }
 
 void mostrarRegistro(Estudiante* cabeza) {
-    cout << "\n====== LISTADO GENERAL DE ESTUDIANTES ======\n";
+    cout << "\n====== LISTADO GENERAL DE ESTUDIANTES (ORDENADO POR CÓDIGO) ======\n";
     if (cabeza == nullptr) {
         cout << "No hay estudiantes registrados.\n";
         return;
     }
-    Estudiante* actual = cabeza;
-    while (actual != nullptr) {
-        // Muestra las notas separadas por comas. Si está vacío, muestra "N/A"
-        string notas = actual->concepto.empty() ? "N/A" : actual->concepto;
-        cout << "Nombre: " << actual->nombre
-             << " | Código: " << actual->codigo
-             << " | Notas: " << notas << endl;
-        actual = actual->siguiente;
-    }
+    mostrarInorder(cabeza);
 }
 
-/**
- * @brief Calcula el promedio de una cadena de notas separadas por comas.
- */
 float calcularPromedio(const string& notasStr) {
     if (notasStr.empty()) return 0.0f;
 
@@ -193,13 +183,11 @@ float calcularPromedio(const string& notasStr) {
     float suma = 0.0f;
     int contador = 0;
 
-    // Recorre la cadena segmentando por coma
     while (getline(ss, segmento, ',')) {
         try {
             suma += stof(segmento);
             contador++;
         } catch (...) {
-            // Ignora segmentos no válidos
         }
     }
 
@@ -210,12 +198,12 @@ float calcularPromedio(const string& notasStr) {
 
 void buscarEstudianteYMostrarPromedio(Estudiante* cabeza) {
     string codigoBuscado;
-    cout << "\n====== BÚSQUEDA DE ESTUDIANTE Y PROMEDIO ======\n";
+    cout << "\n====== BÚSQUEDA DE ESTUDIANTE Y PROMEDIOS ======\n";
     if (cabeza == nullptr) {
         cout << "No hay estudiantes registrados para buscar.\n";
         return;
     }
-    
+
     cout << "Ingrese el Código del estudiante a buscar: ";
     getline(cin, codigoBuscado);
     if (!esNumero(codigoBuscado)) {
@@ -225,35 +213,142 @@ void buscarEstudianteYMostrarPromedio(Estudiante* cabeza) {
 
     Estudiante* encontrado = buscarEstudiante(cabeza, codigoBuscado);
     if (encontrado != nullptr) {
-        string notasStr = encontrado->concepto;
-        string notasDisplay = notasStr.empty() ? "N/A" : notasStr;
-        float promedio = calcularPromedio(notasStr);
-        string promedioStr = floatAString(promedio);
-
         cout << "\n  Estudiante Encontrado!\n";
         cout << "  Nombre: " << encontrado->nombre << endl;
         cout << "  Código: " << encontrado->codigo << endl;
-        cout << "  Notas Registradas: " << notasDisplay << endl;
-        cout << "  Promedio Exclusivo: " << promedioStr << endl; 
+        if (encontrado->materias.empty()) {
+            cout << "  Materias: N/A" << endl;
+            cout << "  Promedio General: N/A" << endl;
+        } else {
+            cout << "  Materias y Notas:" << endl;
+            for (const auto& mat : encontrado->materias) {
+                cout << "    " << mat.nombreMateria << ": ";
+                if (mat.notas.empty()) {
+                    cout << "Sin notas";
+                } else {
+                    for (size_t i = 0; i < mat.notas.size(); ++i) {
+                        cout << mat.notas[i];
+                        if (i < mat.notas.size() - 1) cout << ", ";
+                    }
+                    cout << " (Promedio: " << floatAString(calcularPromedioMateria(mat.notas)) << ")";
+                }
+                cout << endl;
+            }
+            cout << "  Promedio General: " << floatAString(calcularPromedioGeneral(encontrado->materias)) << endl;
+        }
     } else {
         cout << "  [ERROR] No se encontró ningún estudiante con el código " << codigoBuscado << ".\n";
     }
 }
 
+Estudiante* insertarEnBST(Estudiante* raiz, Estudiante* nuevo) {
+    if (raiz == nullptr) return nuevo;
+    if (stoi(nuevo->codigo) < stoi(raiz->codigo)) {
+        raiz->izquierdo = insertarEnBST(raiz->izquierdo, nuevo);
+    } else {
+        raiz->derecho = insertarEnBST(raiz->derecho, nuevo);
+    }
+    return raiz;
+}
 
-// ---------- FUNCIONES DE COLA (FIFO - REGISTRO DE NOTAS PENDIENTES) ----------
+Estudiante* buscarEnBST(Estudiante* raiz, const string& codigo) {
+    if (raiz == nullptr || raiz->codigo == codigo) return raiz;
+    if (stoi(codigo) < stoi(raiz->codigo)) {
+        return buscarEnBST(raiz->izquierdo, codigo);
+    } else {
+        return buscarEnBST(raiz->derecho, codigo);
+    }
+}
 
-void registrarNotaPendiente(Estudiante*& frente, Estudiante*& final, Estudiante* lista, string codigo, string notaStr) {
+void mostrarInorder(Estudiante* raiz) {
+    if (raiz != nullptr) {
+        mostrarInorder(raiz->izquierdo);
+        cout << "Nombre: " << raiz->nombre
+             << " | Código: " << raiz->codigo
+             << " | Materias: ";
+        if (raiz->materias.empty()) {
+            cout << "N/A";
+        } else {
+            for (size_t i = 0; i < raiz->materias.size(); ++i) {
+                cout << raiz->materias[i].nombreMateria << "(";
+                for (size_t j = 0; j < raiz->materias[i].notas.size(); ++j) {
+                    cout << raiz->materias[i].notas[j];
+                    if (j < raiz->materias[i].notas.size() - 1) cout << ",";
+                }
+                cout << ")";
+                if (i < raiz->materias.size() - 1) cout << " ";
+            }
+        }
+        cout << endl;
+        mostrarInorder(raiz->derecho);
+    }
+}
+
+void agregarMateriaAEstudiante(Estudiante* estudiante, string nombreMateria) {
+    if (materiaExiste(estudiante->materias, nombreMateria)) {
+        cout << "  [ERROR] La materia " << nombreMateria << " ya existe para este estudiante.\n";
+        return;
+    }
+    Materia nueva;
+    nueva.nombreMateria = nombreMateria;
+    estudiante->materias.push_back(nueva);
+    cout << "  [ÉXITO] Materia " << nombreMateria << " agregada al estudiante " << estudiante->nombre << ".\n";
+}
+
+void eliminarMateriaDeEstudiante(Estudiante* estudiante, string nombreMateria) {
+    for (auto it = estudiante->materias.begin(); it != estudiante->materias.end(); ++it) {
+        if (it->nombreMateria == nombreMateria) {
+            estudiante->materias.erase(it);
+            cout << "  [ÉXITO] Materia " << nombreMateria << " eliminada del estudiante " << estudiante->nombre << ".\n";
+            return;
+        }
+    }
+    cout << "  [ERROR] Materia " << nombreMateria << " no encontrada para este estudiante.\n";
+}
+
+void registrarNotaEnMateria(Estudiante* estudiante, string nombreMateria, float nota) {
+    for (auto& mat : estudiante->materias) {
+        if (mat.nombreMateria == nombreMateria) {
+            mat.notas.push_back(nota);
+            cout << "  [ÉXITO] Nota " << floatAString(nota) << " registrada en " << nombreMateria << " para " << estudiante->nombre << ".\n";
+            return;
+        }
+    }
+    cout << "  [ERROR] Materia " << nombreMateria << " no encontrada para este estudiante.\n";
+}
+
+float calcularPromedioMateria(const vector<float>& notas) {
+    if (notas.empty()) return 0.0f;
+    float suma = 0.0f;
+    for (float n : notas) suma += n;
+    return suma / notas.size();
+}
+
+float calcularPromedioGeneral(const vector<Materia>& materias) {
+    if (materias.empty()) return 0.0f;
+    float sumaPromedios = 0.0f;
+    for (const auto& mat : materias) {
+        sumaPromedios += calcularPromedioMateria(mat.notas);
+    }
+    return sumaPromedios / materias.size();
+}
+
+void registrarNotaPendiente(Estudiante*& frente, Estudiante*& final, Estudiante* lista, string codigo, string nombreMateria, float nota) {
     Estudiante* estudianteExistente = buscarEstudiante(lista, codigo);
     if (estudianteExistente == nullptr) {
         cout << "  [ERROR] El estudiante con código " << codigo << " no existe en el registro principal.\n";
         return;
     }
+    if (!materiaExiste(estudianteExistente->materias, nombreMateria)) {
+        cout << "  [ERROR] La materia " << nombreMateria << " no existe para el estudiante " << estudianteExistente->nombre << ".\n";
+        return;
+    }
 
     Estudiante* nuevo = new Estudiante();
-    nuevo->nombre = estudianteExistente->nombre; 
+    nuevo->nombre = estudianteExistente->nombre;
     nuevo->codigo = codigo;
-    nuevo->concepto = notaStr; // Una sola nota
+    nuevo->concepto = floatAString(nota);
+    nuevo->materiaPendiente = nombreMateria;
     nuevo->siguiente = nullptr;
 
     if (final == nullptr) {
@@ -262,7 +357,7 @@ void registrarNotaPendiente(Estudiante*& frente, Estudiante*& final, Estudiante*
         final->siguiente = nuevo;
         final = nuevo;
     }
-    cout << "  [ÉXITO] Nota " << notaStr << " registrada en la cola para el código " << codigo << ".\n";
+    cout << "  [ÉXITO] Nota " << floatAString(nota) << " para " << nombreMateria << " registrada en la cola para " << estudianteExistente->nombre << ".\n";
 }
 
 void procesarNota(Estudiante*& frente, Estudiante*& final, Estudiante* lista) {
@@ -270,7 +365,7 @@ void procesarNota(Estudiante*& frente, Estudiante*& final, Estudiante* lista) {
         cout << "  [ADVERTENCIA] No hay notas pendientes para procesar.\n";
         return;
     }
-    
+
     if (!pedirConfirmacion("procesar la siguiente nota")) {
         cout << "  Proceso de nota cancelado.\n";
         return;
@@ -279,20 +374,16 @@ void procesarNota(Estudiante*& frente, Estudiante*& final, Estudiante* lista) {
     Estudiante* temp = frente;
     Estudiante* estudianteLista = buscarEstudiante(lista, temp->codigo);
     string nuevaNotaStr = temp->concepto;
+    string materia = temp->materiaPendiente;
 
     cout << "\n====== PROCESANDO NOTA (FIFO) ======\n";
     cout << "  Estudiante: " << temp->nombre
          << " | Código: " << temp->codigo
+         << " | Materia: " << materia
          << " | Nota a Añadir: " << nuevaNotaStr << endl;
-    
+
     if (estudianteLista != nullptr) {
-        // AGREGAR LA NUEVA NOTA A LA LISTA EXISTENTE SEPARADA POR COMA
-        if (estudianteLista->concepto.empty()) {
-            estudianteLista->concepto = nuevaNotaStr;
-        } else {
-            estudianteLista->concepto += "," + nuevaNotaStr;
-        }
-        cout << "  [ÉXITO] Nota actualizada en el registro principal. Notas: " << estudianteLista->concepto << "\n";
+        registrarNotaEnMateria(estudianteLista, materia, stof(nuevaNotaStr));
     } else {
         cout << "  [ERROR] Error crítico: Estudiante no encontrado en la lista principal (Nota no actualizada).\n";
     }
@@ -317,12 +408,11 @@ void mostrarNotasPendientes(Estudiante* frente) {
     while (actual != nullptr) {
         cout << "  " << i++ << ". Código: " << actual->codigo
              << " | Nombre: " << actual->nombre
+             << " | Materia: " << actual->materiaPendiente
              << " | Nota a Asignar: " << actual->concepto << endl;
         actual = actual->siguiente;
     }
 }
-
-// ---------- FUNCIONES DE PILA (LIFO - Historial) ----------
 
 void registrarHistorial(Estudiante*& cima, string nombre, string codigo, string concepto) {
     Estudiante* nuevo = new Estudiante();
@@ -370,8 +460,6 @@ void mostrarHistorial(Estudiante* cima) {
     }
 }
 
-// ---------- MENÚ PRINCIPAL ----------
-
 int main() {
     Estudiante* lista = nullptr;
     Estudiante* frente = nullptr;
@@ -386,12 +474,16 @@ int main() {
         limpiarConsola(); 
         
         cout << "\n----- SISTEMA DE GESTIÓN ACADÉMICA (ESTRUCTURAS DE DATOS) -----\n";
-        cout << "  [ LISTA ENLAZADA - REGISTRO DE ESTUDIANTES ]\n";
-        cout << "  1. Registrar nuevo estudiante (Inicia sin notas)\n";
+        cout << "  [ BST - REGISTRO DE ESTUDIANTES ]\n";
+        cout << "  1. Registrar nuevo estudiante (Inicia sin materias)\n";
         cout << "  2. Mostrar todos los estudiantes\n";
-        cout << "  9. Buscar estudiante y ver notas/promedio exclusivo\n";
+        cout << "  9. Buscar estudiante y ver materias/notas/promedios\n";
+        cout << "  [ GESTIÓN DE MATERIAS ]\n";
+        cout << "  10. Agregar materia a estudiante\n";
+        cout << "  11. Eliminar materia de estudiante\n";
+        cout << "  12. Registrar nota en materia específica\n";
         cout << "  [ COLA (FIFO) - ASIGNACIÓN DE NOTAS PENDIENTES ]\n";
-        cout << "  3. Registrar Nota Pendiente para un estudiante\n";
+        cout << "  3. Registrar Nota Pendiente para un estudiante (especificar materia)\n";
         cout << "  4. Procesar la siguiente nota pendiente (Asignar)\n";
         cout << "  5. Ver notas pendientes en espera\n";
         cout << "  [ PILA (LIFO) - HISTORIAL DE ACCIONES ]\n";
@@ -401,7 +493,7 @@ int main() {
         cout << "\n  0. Salir del sistema\n";
         cout << "Seleccione una opción: ";
 
-        opcion = pedirOpcionValida(0, 9);
+        opcion = pedirOpcionValida(0, 12);
 
         limpiarConsola(); 
 
@@ -421,14 +513,57 @@ int main() {
                 buscarEstudianteYMostrarPromedio(lista);
                 break;
 
+            case 10: // Agregar materia a estudiante
+                cout << "\n-- AGREGAR MATERIA A ESTUDIANTE --\n";
+                cout << "Ingrese el código del estudiante:\n";
+                codigo = pedirCodigoValido();
+                Estudiante* estAgregar = buscarEstudiante(lista, codigo);
+                if (estAgregar == nullptr) {
+                    cout << "  [ERROR] Estudiante no encontrado.\n";
+                } else {
+                    cout << "Ingrese el nombre de la materia:\n";
+                    nombre = pedirNombreMateriaValido();
+                    agregarMateriaAEstudiante(estAgregar, nombre);
+                }
+                break;
+
+            case 11: // Eliminar materia de estudiante
+                cout << "\n-- ELIMINAR MATERIA DE ESTUDIANTE --\n";
+                cout << "Ingrese el código del estudiante:\n";
+                codigo = pedirCodigoValido();
+                Estudiante* estEliminar = buscarEstudiante(lista, codigo);
+                if (estEliminar == nullptr) {
+                    cout << "  [ERROR] Estudiante no encontrado.\n";
+                } else {
+                    cout << "Ingrese el nombre de la materia a eliminar:\n";
+                    nombre = pedirNombreMateriaValido();
+                    eliminarMateriaDeEstudiante(estEliminar, nombre);
+                }
+                break;
+
+            case 12: // Registrar nota en materia específica
+                cout << "\n-- REGISTRAR NOTA EN MATERIA ESPECÍFICA --\n";
+                cout << "Ingrese el código del estudiante:\n";
+                codigo = pedirCodigoValido();
+                Estudiante* estNota = buscarEstudiante(lista, codigo);
+                if (estNota == nullptr) {
+                    cout << "  [ERROR] Estudiante no encontrado.\n";
+                } else {
+                    cout << "Ingrese el nombre de la materia:\n";
+                    nombre = pedirNombreMateriaValido();
+                    nota = pedirNotaValida();
+                    registrarNotaEnMateria(estNota, nombre, nota);
+                }
+                break;
+
             case 3: // Registrar Nota Pendiente (Cola - FIFO)
                 cout << "\n-- REGISTRAR NOTA PENDIENTE (COLA) --\n";
-                cout << "Ingrese el código y la nota a registrar:\n";
+                cout << "Ingrese el código del estudiante:\n";
                 codigo = pedirCodigoValido();
+                cout << "Ingrese el nombre de la materia:\n";
+                nombre = pedirNombreMateriaValido();
                 nota = pedirNotaValida();
-                // Usar la función de formato para asegurar un decimal
-                notaStr = floatAString(nota); 
-                registrarNotaPendiente(frente, final, lista, codigo, notaStr);
+                registrarNotaPendiente(frente, final, lista, codigo, nombre, nota);
                 break;
 
             case 4: // Procesar Nota Pendiente (Cola - FIFO)
