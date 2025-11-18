@@ -473,23 +473,23 @@ int main() {
     do {
         limpiarConsola(); 
         
-        cout << "\n----- SISTEMA DE GESTIÓN ACADÉMICA (ESTRUCTURAS DE DATOS) -----\n";
+        cout << "\n----- SISTEMA DE GESTIÓN ACADÉMICA (ESTRUCTURAS DE DATOS) -----\n\n";
         cout << "  [ BST - REGISTRO DE ESTUDIANTES ]\n";
         cout << "  1. Registrar nuevo estudiante (Inicia sin materias)\n";
         cout << "  2. Mostrar todos los estudiantes\n";
-        cout << "  3. Buscar estudiante y ver materias/notas/promedios\n";
+        cout << "  3. Buscar estudiante y ver materias/notas/promedios\n\n";
         cout << "  [ GESTIÓN DE MATERIAS ]\n";
         cout << "  4. Agregar materia a estudiante\n";
-        cout << "  5. Eliminar materia de estudiante\n";
+        cout << "  5. Eliminar materia de estudiante\n\n";
         cout << "  [ COLA (FIFO) - ASIGNACIÓN DE NOTAS PENDIENTES ]\n";
         cout << "  6. Registrar Nota Pendiente para un estudiante (especificar materia)\n";
         cout << "  7. Procesar la siguiente nota pendiente (Asignar)\n";
-        cout << "  8. Ver notas pendientes en espera\n";
+        cout << "  8. Ver notas pendientes en espera\n\n";
         cout << "  [ PILA (LIFO) - HISTORIAL DE ACCIONES ]\n";
         cout << "  9. Registrar acción en historial\n";
         cout << "  10. Eliminar último registro del historial\n";
-        cout << "  11. Ver historial de acciones\n";
-        cout << "\n  0. Salir del sistema\n";
+        cout << "  11. Ver historial de acciones\n\n";
+        cout << "  0. Salir del sistema\n";
         cout << "Seleccione una opción: ";
 
         opcion = pedirOpcionValida(0, 11);
