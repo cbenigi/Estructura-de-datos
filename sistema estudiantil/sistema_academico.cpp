@@ -333,22 +333,6 @@ void registrarNotaEnMateria(Estudiante* estudiante, string nombreMateria, float 
     cout << "  [ERROR] Materia " << nombreMateria << " no encontrada para este estudiante.\n";
 }
 
-float calcularPromedioMateria(const vector<float>& notas) {
-    if (notas.empty()) return 0.0f;
-    float suma = 0.0f;
-    for (float n : notas) suma += n;
-    return suma / notas.size();
-}
-
-float calcularPromedioGeneral(const vector<Materia>& materias) {
-    if (materias.empty()) return 0.0f;
-    float sumaPromedios = 0.0f;
-    for (const auto& mat : materias) {
-        sumaPromedios += calcularPromedioMateria(mat.notas);
-    }
-    return sumaPromedios / materias.size();
-}
-
 void registrarNotaPendiente(Estudiante*& frente, Estudiante*& final, Estudiante* lista, string codigo, string nombreMateria, float nota) {
     Estudiante* estudianteExistente = buscarEstudiante(lista, codigo);
     if (estudianteExistente == nullptr) {
